@@ -63,7 +63,7 @@ fi
 command="/usr/local/bin/vm-attach.sh detach",no-port-forwarding,no-x11-forwarding,no-agent-forwarding ssh-rsa AAAAB3N<.... rest of your extracted key>
 ```
 
-7. For a good measure do `chmod -R 600 /root/.ssh && chmod 700 /root/.ssh`.
+7. For a good measure do `sudo chmod -R 600 /root/.ssh && sudo chmod 700 /root/.ssh`.
 8. Nvidia users may need to create `/etc/X11/xorg.conf.d/20-nvidia-ddc.conf` that fixes i2c support (required for `ddcutil`):
 ```
 	Section "Device"

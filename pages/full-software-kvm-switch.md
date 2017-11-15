@@ -54,8 +54,8 @@ fi
 ```
 2. You will need to edit above script and replace `devices` array values with correct `vendor:product` ids from `lsusb`. You can add more than two devices. You can add devices that do not necessarily are connected - script will gracefully fail when they are missing and work when they are connected.
 3. Set `monitor` value to i2c device of your monitor you would like to switch. Set `input` value to correct input on your monitor. Setting these can be bit of trial and error. You can see your monitor's input codes via `sudo ddcutil capabilities --bus=[your monitor's i2c device number] | grep 60 -A10`. The input codes are in hex and some ports may look like `0x0f`.
-4. Now make new ssh key with `ssh-keygen -t rsa -b 4096 -C "vm-attach"`.
-5. Extract public key with `ssh-keygen -y -f ~/.ssh/vm-attach.id_rsa`
+4. Now make new ssh key with `ssh-keygen -t rsa -b 4096 -C "vm-attach" -f vm-attach`.
+5. Extract public key with `ssh-keygen -y -f vm-attach`
 6. Edit `/root/.ssh/authorized_keys` to contain:
 ```
     command="/usr/local/bin/vm-attach.sh detach",no-port-forwarding,no-x11-forwarding,no-agent-forwarding ssh-rsa AAAAB3N<.... rest of your extracted key>

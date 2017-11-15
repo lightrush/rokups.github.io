@@ -13,43 +13,44 @@ I already wrote on [Sharing HID devices with KVM virtual machine](#!pages/kvm-hi
 ## Host Setup
 
 1. Core of our setup is shell script attaching and detaching USB devices as well as controlling monitor input. Save script below to `/usr/local/bin/vm-attach.sh`
+
 ```bash
-	#!/usr/bin/env bash
+#!/usr/bin/env bash
 
-	monitor=1
-	input=3
-	devices=(1234:5678 9ABC:DEFG)
-	vmname=$(virsh list | sed -n '3p' | sed -nr 's/ *[0-9]+ +(.*) +running/\1/p')
+monitor=1
+input=3
+devices=(1234:5678 9ABC:DEFG)
+vmname=$(virsh list | sed -n '3p' | sed -nr 's/ *[0-9]+ +(.*) +running/\1/p')
 
-	attach_device() {
-			vmname=$1
-			device=(${2//:/ })
-			action=$3
-			xml_name=/tmp/device-${device[0]}:${device[1]}.xml
+attach_device() {
+	vmname=$1
+	device=(${2//:/ })
+	action=$3
+	xml_name=/tmp/device-${device[0]}:${device[1]}.xml
 
-			echo "<hostdev mode='subsystem' type='usb'>"      > $xml_name
-			echo "  <source>"                                >> $xml_name
-			echo "          <vendor id='0x${device[0]}'/>"   >> $xml_name
-			echo "          <product id='0x${device[1]}'/>"  >> $xml_name
-			echo "  </source>"                               >> $xml_name
-			echo "</hostdev>"                                >> $xml_name
+	echo "<hostdev mode='subsystem' type='usb'>"      > $xml_name
+	echo "  <source>"                                >> $xml_name
+	echo "          <vendor id='0x${device[0]}'/>"   >> $xml_name
+	echo "          <product id='0x${device[1]}'/>"  >> $xml_name
+	echo "  </source>"                               >> $xml_name
+	echo "</hostdev>"                                >> $xml_name
 
-			virsh $action-device $vmname $xml_name
-	}
+	virsh $action-device $vmname $xml_name
+}
 
-	if [ "$1" == "attach" ];
-	then
-			for dev in "${devices[@]}"
-			do
-					attach_device "$vmname" $dev attach
-			done
-            ddcutil setvcp 60 $input --bus=$monitor
-	else
-			for dev in "${devices[@]}"
-			do
-					attach_device "$vmname" $dev detach
-			done
-	fi
+if [ "$1" == "attach" ];
+then
+	for dev in "${devices[@]}"
+	do
+		attach_device "$vmname" $dev attach
+	done
+	ddcutil setvcp 60 $input --bus=$monitor
+else
+	for dev in "${devices[@]}"
+	do
+		attach_device "$vmname" $dev detach
+	done
+fi
 ```
 2. You will need to edit above script and replace `devices` array values with correct `vendor:product` ids from `lsusb`. You can add more than two devices. You can add devices that do not necessarily are connected - script will gracefully fail when they are missing and work when they are connected.
 3. Set `monitor` value to i2c device of your monitor you would like to switch. Set `input` value to correct input on your monitor. Setting these can be bit of trial and error. Out of 4 inputs on my monitor i can toggle between two - DVI and HDMI.

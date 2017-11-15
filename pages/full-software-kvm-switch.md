@@ -1,6 +1,6 @@
 ﻿# Full software kvm switch for VMs
 
-I already wrote on [Sharing HID devices with KVM virtual machine](#!pages/kvm-hid.md), but this is way better. It solves same problem but more elegantly and painless than ever. For description of the problem read original article. This article assumes you have to GPUs one of which is dedicated to host and another is dedicated to VM. You use one main monitor that has multiple outputs. Two outputs are connected one to each GPU. Monitor must be i2c-capable!
+I already wrote on [Sharing HID devices with KVM virtual machine](#!pages/kvm-hid.md), but this is way better. It solves same problem but more elegantly and painless than ever. For description of the problem read original article. This article assumes you have to GPUs one of which is dedicated to host and another is dedicated to VM. You use one main monitor that has multiple inputs. Two inputs are connected one to each GPU. Monitor must be i2c-capable!
 
 ## Perquisites
 
@@ -17,7 +17,7 @@ I already wrote on [Sharing HID devices with KVM virtual machine](#!pages/kvm-hi
 	#!/usr/bin/env bash
 
 	monitor=1
-	output=3
+	input=3
 	devices=(1234:5678 9ABC:DEFG)
 	vmname=$(virsh list | sed -n '3p' | sed -nr 's/ *[0-9]+ +(.*) +running/\1/p')
 
@@ -43,7 +43,7 @@ I already wrote on [Sharing HID devices with KVM virtual machine](#!pages/kvm-hi
 			do
 					attach_device "$vmname" $dev attach
 			done
-            ddcutil setvcp 60 $monitor --bus=$output
+            ddcutil setvcp 60 $input --bus=$monitor
 	else
 			for dev in "${devices[@]}"
 			do
@@ -52,7 +52,7 @@ I already wrote on [Sharing HID devices with KVM virtual machine](#!pages/kvm-hi
 	fi
 ```
 2. You will need to edit above script and replace `devices` array values with correct `vendor:product` ids from `lsusb`. You can add more than two devices. You can add devices that do not necessarily are connected - script will gracefully fail when they are missing and work when they are connected.
-3. Set `monitor` value to i2c device of your monitor you would like to switch. Set `output` value to correct output on your monitor. Setting these can be bit of trial and error. Out of 4 outputs on my monitor i can toggle between two - DVI and HDMI.
+3. Set `monitor` value to i2c device of your monitor you would like to switch. Set `input` value to correct input on your monitor. Setting these can be bit of trial and error. Out of 4 inputs on my monitor i can toggle between two - DVI and HDMI.
 4. Now make new ssh key with `ssh-keygen -t rsa -b 4096 -C "vm-attach"`.
 5. Extract public key with `ssh-keygen -y -f ~/.ssh/vm-attach.id_rsa`
 6. Edit `/root/.ssh/authorized_keys` to contain:
@@ -82,13 +82,13 @@ Since Windows is most common case that is what i will be detailing in this secti
 1. Install `mControl`. For sake of simplicity i copied `mControl.exe` to documents folder where i placed other scripts though it is not necessary.
 2. Copy `vm-attach.id_rsa` from host to VM and use `puttygen.exe` to convert it to `vm-attach.ppk`.
 3. Create and save new connection using `putty.exe` to connect to `root@host_ip_addr`. Use `vm-attach.ppk` for auth. Save it with name `vm-attach`.
-4. Create powershell script `detach.ps1`. You may need to change `1` to reflect correct output used by host.
+4. Create powershell script `detach.ps1`. You may need to change `1` to reflect correct input used by host.
 ```ps
-C:\Users\User\Documents\mControl setcontrol 60 1	# Switches monitor output to slot 1
+C:\Users\User\Documents\mControl setcontrol 60 1	# Switches monitor input to slot 1
 C:\Users\User\Documents\putty -load vm-attach		# Executes vm-attach connection saved in putty
 ```
 
-And that's it. Running this script will first switch monitor output to the host and then execute `/usr/local/bin/vm-attach.sh detach` which should detach usb devices.
+And that's it. Running this script will first switch monitor input to the host and then execute `/usr/local/bin/vm-attach.sh detach` which should detach usb devices.
 
 ## Conclusion
 
